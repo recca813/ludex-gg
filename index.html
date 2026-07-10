@@ -62,12 +62,9 @@ header{position:sticky;top:0;z-index:50;background:rgba(18,16,31,.85);backdrop-f
 /* ---------- marquee ---------- */
 .ticker{border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(255,84,112,.10),rgba(255,194,75,.10),rgba(76,201,240,.10));
   overflow:hidden;font-size:12.5px;color:var(--muted)}
-.ticker .track{display:flex;gap:0;white-space:nowrap;padding:7px 0;width:max-content;
-  animation:tick 40s linear infinite;will-change:transform}
-.ticker .track .seg{display:flex;gap:44px;padding-right:44px;flex-shrink:0}
+.ticker .track{display:flex;gap:44px;white-space:nowrap;padding:7px 0;width:max-content;animation:tick 40s linear infinite}
 .ticker b{color:var(--gold);font-weight:600}
-@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.ticker:hover .track{animation-play-state:paused}
+@keyframes tick{to{transform:translateX(-50%)}}
 
 /* ---------- layout ---------- */
 main{max-width:1200px;margin:0 auto;padding:26px 20px 90px}
@@ -238,8 +235,8 @@ body.light html{scrollbar-color:#c9bfe8 var(--bg)}
    3. Project Settings → API → copy URL + anon key below
    4. Deploy this file (Vercel / Netlify / Cloudflare Pages)
 ============================================================ */
-const SUPABASE_URL      = "PASTE_YOUR_SUPABASE_URL_HERE";      // e.g. https://abcd1234.supabase.co
-const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_PUBLIC_KEY_HERE";   // the long "anon public" key
+const SUPABASE_URL      = "https://jdtlncuaoazzmlbgwgaq.supabase.co";      // e.g. https://abcd1234.supabase.co
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpkdGxuY3Vhb2F6em1sYmd3Z2FxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NDY0MTYsImV4cCI6MjA5OTIyMjQxNn0.u6b6dGM4pIN6dOYJqav5IWIfH2P_n6XjrzL-ZpBLjHY";   // the long "anon public" key
 
 "use strict";
 const $=s=>document.querySelector(s), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -317,8 +314,8 @@ function renderHeader(tickerGames){
   }
   const tb=$("#themeBtn");if(tb)tb.onclick=toggleTheme;
   if(tickerGames&&tickerGames.length){
-    const seg=tickerGames.slice(0,8).map(g=>`<span>▸ <b>${esc(g.title)}</b> by ${esc(g.owner_name)} · ${fmt(g.plays)} plays</span>`).join("");const items=`<span class="seg">${seg}</span><span class="seg">${seg}</span>`;
-    $("#tickTrack").innerHTML=items;
+    const items=tickerGames.slice(0,8).map(g=>`<span>▸ <b>${esc(g.title)}</b> by ${esc(g.owner_name)} · ${fmt(g.plays)} plays</span>`).join("");
+    $("#tickTrack").innerHTML=items+items;
   }
 }
 document.body.addEventListener("click",()=>$("#userMenu").classList.remove("open"));
