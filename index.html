@@ -54,7 +54,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(18,16,31,.85);backdrop-f
 /* ---------- marquee ---------- */
 .ticker{border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(255,84,112,.10),rgba(255,194,75,.10),rgba(76,201,240,.10));
   overflow:hidden;font-size:12.5px;color:var(--muted)}
-.ticker .track{display:flex;gap:44px;white-space:nowrap;padding:7px 0;width:max-content;animation:tick 40s linear infinite}
+.ticker .track{display:flex;gap:44px;white-space:nowrap;padding:7px 0;width:max-content;animation:tick linear infinite;animation-duration:40s}
 .ticker b{color:var(--gold);font-weight:600}
 @keyframes tick{to{transform:translateX(-50%)}}
 
@@ -220,8 +220,16 @@ routes[""]=async()=>{
     q(sb.from("posts").select("*").eq("kind","news").order("published_at",{ascending:false}).limit(24))
   ]);
   if(deals.length){
-    const items=deals.slice(0,10).map(d=>`<span>▸ <b>${esc(d.title)}</b>${d.discount_pct?` — -${Math.round(d.discount_pct)}%`:""}</span>`).join("");
-    $("#tickTrack").innerHTML=items+items;
+    const one=deals.slice(0,10).map(d=>`<span>▸ <b>${esc(d.title)}</b>${d.discount_pct?` — -${Math.round(d.discount_pct)}%`:""}</span>`).join("");
+    const track=$("#tickTrack");
+    // repeat the set until it's at least 2 screens wide, so the -50% loop never shows a gap
+    let items=one,reps=1;
+    while(items.length<one.length*4&&reps<12){items+=one;reps++}
+    track.innerHTML=items+items;
+    requestAnimationFrame(()=>{
+      const half=track.scrollWidth/2;
+      track.style.animationDuration=`${Math.max(20,half/60)}s`; // constant ~60px/s regardless of content length
+    });
   }
   const hero=`<section class="hero">
     <div class="eyebrow">Deals &amp; news, auto-updated</div>
