@@ -429,6 +429,7 @@
 
   el.bubble.addEventListener('click', function () {
     if (dragMoved) return;
+    reanchorToCurrentRect();
     state.minimized = false;
     saveState();
     updatePanelVisibility();
@@ -436,6 +437,7 @@
 
   el.minBtn.addEventListener('click', function (e) {
     e.stopPropagation();
+    reanchorToCurrentRect();
     state.minimized = true;
     saveState();
     updatePanelVisibility();
@@ -534,14 +536,35 @@
 
   var dragging = false, dragMoved = false, dragOffset = { x: 0, y: 0 };
 
+  // state.pos anchors to whichever edge the widget is nearest, so opening
+  // the (much wider) panel always grows away from that edge instead of
+  // jumping — pinning the far edge would force growth toward the near
+  // screen edge, which is either wrong-looking or clips off-screen.
   function applyPosition() {
-    if (state.pos) {
-      wrap.style.right = state.pos.right + 'px';
-      wrap.style.bottom = state.pos.bottom + 'px';
-    } else {
-      wrap.style.right = '24px';
-      wrap.style.bottom = '24px';
-    }
+    var pos = state.pos || { edgeX: 'right', x: 24, edgeY: 'bottom', y: 24 };
+    wrap.style.left = pos.edgeX === 'left' ? pos.x + 'px' : 'auto';
+    wrap.style.right = pos.edgeX === 'right' ? pos.x + 'px' : 'auto';
+    wrap.style.top = pos.edgeY === 'top' ? pos.y + 'px' : 'auto';
+    wrap.style.bottom = pos.edgeY === 'bottom' ? pos.y + 'px' : 'auto';
+  }
+
+  function anchorFromRect(rect) {
+    var edgeX = rect.left < (window.innerWidth - rect.right) ? 'left' : 'right';
+    var edgeY = rect.top < (window.innerHeight - rect.bottom) ? 'top' : 'bottom';
+    return {
+      edgeX: edgeX,
+      x: Math.round(edgeX === 'left' ? rect.left : window.innerWidth - rect.right),
+      edgeY: edgeY,
+      y: Math.round(edgeY === 'top' ? rect.top : window.innerHeight - rect.bottom)
+    };
+  }
+
+  // Re-picks the nearest edge right before the panel size changes, so the
+  // growth direction stays correct even if the viewport was resized since
+  // the last drag.
+  function reanchorToCurrentRect() {
+    state.pos = anchorFromRect(wrap.getBoundingClientRect());
+    applyPosition();
   }
 
   function startDrag(clientX, clientY, target) {
@@ -567,13 +590,7 @@
   function endDrag() {
     if (!dragging) return;
     dragging = false;
-    var rect = wrap.getBoundingClientRect();
-    state.pos = {
-      right: Math.round(window.innerWidth - rect.right),
-      bottom: Math.round(window.innerHeight - rect.bottom)
-    };
-    wrap.style.left = 'auto';
-    wrap.style.top = 'auto';
+    state.pos = anchorFromRect(wrap.getBoundingClientRect());
     applyPosition();
     saveState();
   }
@@ -593,8 +610,9 @@
   window.addEventListener('pointerup', endDrag);
   window.addEventListener('resize', function () {
     if (state.pos) {
-      state.pos.right = Math.min(state.pos.right, window.innerWidth - wrap.offsetWidth);
-      state.pos.bottom = Math.min(state.pos.bottom, window.innerHeight - wrap.offsetHeight);
+      var w = wrap.offsetWidth, h = wrap.offsetHeight;
+      state.pos.x = Math.max(0, Math.min(state.pos.x, window.innerWidth - w));
+      state.pos.y = Math.max(0, Math.min(state.pos.y, window.innerHeight - h));
       applyPosition();
     }
   });
