@@ -89,6 +89,13 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line)}
 .cmeta .price{font-weight:700;color:var(--ink)}
 .cmeta .was{text-decoration:line-through;color:var(--muted);font-weight:400}
 
+.hscroll{display:flex;gap:20px;overflow-x:auto;padding:2px 2px 14px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.hscroll .cart-card{flex:0 0 240px}
+.hscroll::-webkit-scrollbar{height:8px}
+.hscroll::-webkit-scrollbar-track{background:transparent}
+.hscroll::-webkit-scrollbar-thumb{background:#3a3360;border-radius:99px}
+body.light .hscroll::-webkit-scrollbar-thumb{background:#c9bfe8}
+
 .empty{padding:50px 20px;text-align:center;color:var(--muted)}
 .empty .big{font-size:40px;margin-bottom:10px}
 footer{border-top:1px solid var(--line);padding:26px 20px;text-align:center;color:var(--muted);font-size:13px}
@@ -210,6 +217,7 @@ function newsCard(p){
     </div></a>`;
 }
 const grid=(list,card)=>list&&list.length?`<div class="grid">${list.map(card).join("")}</div>`:`<div class="empty"><div class="big">🕳️</div>Nothing here yet.</div>`;
+const hgrid=(list,card)=>list&&list.length?`<div class="hscroll">${list.map(card).join("")}</div>`:`<div class="empty"><div class="big">🕳️</div>Nothing here yet.</div>`;
 const q=async p=>{const {data,error}=await p;if(error)throw error;return data||[]};
 
 /* ============================================================ VIEWS */
@@ -238,7 +246,7 @@ routes[""]=async()=>{
   </section>`;
   return`${hero}
     <h2 class="sec">🔥 Latest Deals</h2>${grid(deals,dealCard)}
-    <h2 class="sec">📰 Gaming News</h2>${grid(news,newsCard)}`;
+    <h2 class="sec">📰 Gaming News</h2>${hgrid(news,newsCard)}`;
 };
 
 routes["search"]=async term=>{
