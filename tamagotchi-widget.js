@@ -66,8 +66,7 @@
       lastSeen: Date.now(),
       streak: 0,
       lastStreakDay: null,
-      minimized: true,
-      pos: null // {right, bottom} in px, null = default corner
+      minimized: true
     };
   }
 
@@ -150,7 +149,6 @@
     '</div>' +
     '<div class="tg-panel" hidden>' +
       '<div class="tg-header">' +
-        '<span class="tg-drag">⠿</span>' +
         '<span class="tg-name" contenteditable="false" spellcheck="false"></span>' +
         '<span class="tg-streak" title="Daily streak"></span>' +
         '<button class="tg-min" title="Minimize">–</button>' +
@@ -428,8 +426,6 @@
   // ---------------------------------------------------------------------
 
   el.bubble.addEventListener('click', function () {
-    if (dragMoved) return;
-    reanchorToCurrentRect();
     state.minimized = false;
     saveState();
     updatePanelVisibility();
@@ -437,7 +433,6 @@
 
   el.minBtn.addEventListener('click', function (e) {
     e.stopPropagation();
-    reanchorToCurrentRect();
     state.minimized = true;
     saveState();
     updatePanelVisibility();
@@ -531,91 +526,15 @@
   });
 
   // ---------------------------------------------------------------------
-  // Drag & drop positioning (persisted per visitor)
+  // Fixed positioning — always docked to the bottom-right corner
   // ---------------------------------------------------------------------
 
-  var dragging = false, dragMoved = false, dragOffset = { x: 0, y: 0 };
-
-  // state.pos anchors to whichever edge the widget is nearest, so opening
-  // the (much wider) panel always grows away from that edge instead of
-  // jumping — pinning the far edge would force growth toward the near
-  // screen edge, which is either wrong-looking or clips off-screen.
   function applyPosition() {
-    var pos = state.pos || { edgeX: 'right', x: 24, edgeY: 'bottom', y: 24 };
-    wrap.style.left = pos.edgeX === 'left' ? pos.x + 'px' : 'auto';
-    wrap.style.right = pos.edgeX === 'right' ? pos.x + 'px' : 'auto';
-    wrap.style.top = pos.edgeY === 'top' ? pos.y + 'px' : 'auto';
-    wrap.style.bottom = pos.edgeY === 'bottom' ? pos.y + 'px' : 'auto';
+    wrap.style.right = '24px';
+    wrap.style.bottom = '24px';
+    wrap.style.left = 'auto';
+    wrap.style.top = 'auto';
   }
-
-  function anchorFromRect(rect) {
-    var edgeX = rect.left < (window.innerWidth - rect.right) ? 'left' : 'right';
-    var edgeY = rect.top < (window.innerHeight - rect.bottom) ? 'top' : 'bottom';
-    return {
-      edgeX: edgeX,
-      x: Math.round(edgeX === 'left' ? rect.left : window.innerWidth - rect.right),
-      edgeY: edgeY,
-      y: Math.round(edgeY === 'top' ? rect.top : window.innerHeight - rect.bottom)
-    };
-  }
-
-  // Re-picks the nearest edge right before the panel size changes, so the
-  // growth direction stays correct even if the viewport was resized since
-  // the last drag.
-  function reanchorToCurrentRect() {
-    state.pos = anchorFromRect(wrap.getBoundingClientRect());
-    applyPosition();
-  }
-
-  function startDrag(clientX, clientY, target) {
-    dragging = true;
-    dragMoved = false;
-    var rect = wrap.getBoundingClientRect();
-    dragOffset.x = clientX - rect.left;
-    dragOffset.y = clientY - rect.top;
-  }
-
-  function moveDrag(clientX, clientY) {
-    if (!dragging) return;
-    dragMoved = true;
-    var w = wrap.offsetWidth, h = wrap.offsetHeight;
-    var left = clamp2(clientX - dragOffset.x, 0, window.innerWidth - w);
-    var top = clamp2(clientY - dragOffset.y, 0, window.innerHeight - h);
-    wrap.style.left = left + 'px';
-    wrap.style.top = top + 'px';
-    wrap.style.right = 'auto';
-    wrap.style.bottom = 'auto';
-  }
-
-  function endDrag() {
-    if (!dragging) return;
-    dragging = false;
-    state.pos = anchorFromRect(wrap.getBoundingClientRect());
-    applyPosition();
-    saveState();
-  }
-
-  function clamp2(v, min, max) { return Math.max(min, Math.min(max, v)); }
-
-  [el.header, el.bubble].forEach(function (dragEl) {
-    dragEl.addEventListener('pointerdown', function (e) {
-      if (e.target === el.minBtn || e.target === el.name) return;
-      startDrag(e.clientX, e.clientY);
-      dragEl.setPointerCapture(e.pointerId);
-    });
-  });
-  window.addEventListener('pointermove', function (e) {
-    if (dragging) moveDrag(e.clientX, e.clientY);
-  });
-  window.addEventListener('pointerup', endDrag);
-  window.addEventListener('resize', function () {
-    if (state.pos) {
-      var w = wrap.offsetWidth, h = wrap.offsetHeight;
-      state.pos.x = Math.max(0, Math.min(state.pos.x, window.innerWidth - w));
-      state.pos.y = Math.max(0, Math.min(state.pos.y, window.innerHeight - h));
-      applyPosition();
-    }
-  });
 
   // ---------------------------------------------------------------------
   // Live decay loop while page is open + "missed you" hook
@@ -671,16 +590,13 @@
     return (
       ':host, .tg-wrap, .tg-wrap * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }\n' +
       '.tg-wrap { position: fixed; z-index: 2147483647; user-select: none; }\n' +
-      '.tg-bubble { width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #fff, #ffe9d6); box-shadow: 0 6px 18px rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: grab; position: relative; animation: tg-float 3s ease-in-out infinite; }\n' +
-      '.tg-bubble:active { cursor: grabbing; }\n' +
+      '.tg-bubble { width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #fff, #ffe9d6); box-shadow: 0 6px 18px rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; position: relative; animation: tg-float 3s ease-in-out infinite; }\n' +
       '.tg-bubble.tg-shake { animation: tg-shakekf .5s; }\n' +
       '@keyframes tg-float { 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-6px);} }\n' +
       '@keyframes tg-shakekf { 0%,100%{transform:translateX(0);} 20%{transform:translateX(-4px);} 40%{transform:translateX(4px);} 60%{transform:translateX(-4px);} 80%{transform:translateX(4px);} }\n' +
       '.tg-notify { position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; border-radius: 50%; background: #ff4757; box-shadow: 0 0 0 2px #fff; }\n' +
       '.tg-panel { width: 260px; background: #fff; border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.25); overflow: hidden; }\n' +
-      '.tg-header { display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: linear-gradient(135deg,#ffd6a5,#ffb4a2); cursor: grab; }\n' +
-      '.tg-header:active { cursor: grabbing; }\n' +
-      '.tg-drag { opacity: .5; font-size: 14px; }\n' +
+      '.tg-header { display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: linear-gradient(135deg,#ffd6a5,#ffb4a2); }\n' +
       '.tg-name { flex: 1; font-weight: 700; font-size: 14px; color: #4a2c2a; outline: none; padding: 2px 4px; border-radius: 6px; cursor: text; }\n' +
       '.tg-name[contenteditable="true"] { background: rgba(255,255,255,.6); }\n' +
       '.tg-streak { font-size: 12px; font-weight: 700; color: #7a4a2a; }\n' +
