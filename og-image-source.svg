@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="glow1" cx="50%" cy="-10%" r="70%">
+      <stop offset="0" stop-color="#a78bfa" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="90%" cy="110%" r="60%">
+      <stop offset="0" stop-color="#ff5470" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#ff5470" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cart" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff5470"/>
+      <stop offset="1" stop-color="#ffc24b"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff5470"/>
+      <stop offset="1" stop-color="#ffc24b"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#12101f"/>
+  <rect width="1200" height="630" fill="url(#glow1)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+
+  <!-- cartridge icon -->
+  <g transform="translate(486,140)">
+    <rect x="0" y="0" width="228" height="182" rx="34" fill="url(#cart)"/>
+    <rect x="46" y="64" width="136" height="46" rx="23" fill="#12101f"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="600" y="430" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="108" font-weight="700" letter-spacing="4" fill="#f2eefc">
+    LU<tspan fill="#ffc24b">DEX</tspan>
+  </text>
+
+  <!-- tagline -->
+  <text x="600" y="480" text-anchor="middle" font-family="Verdana, Arial, sans-serif" font-size="26" fill="#9a92b8">
+    Deals. News. Level up.
+  </text>
+
+  <rect x="500" y="510" width="200" height="4" rx="2" fill="url(#accent)"/>
+</svg>
